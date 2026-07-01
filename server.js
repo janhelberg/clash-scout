@@ -73,6 +73,17 @@ app.post('/api/scan', async (req, res) => {
   return res.json({ results, errors });
 });
 
+// Returns the server's own public outbound IP (for CoC API whitelisting)
+app.get('/api/myip', async (_req, res) => {
+  try {
+    const r = await fetch('https://api.ipify.org?format=json');
+    const data = await r.json();
+    res.json({ ip: data.ip });
+  } catch {
+    res.status(500).json({ error: 'Could not determine IP' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Clash Scout running on port ${PORT}`);
 });
