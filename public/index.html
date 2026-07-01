@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clash Scout</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+      color: #f0c040;
+      margin-bottom: 0.25rem;
+      letter-spacing: 1px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #8b949e;
+      margin-bottom: 2rem;
+      font-size: 0.9rem;
+    }
+
+    .card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 1.5rem;
+      max-width: 680px;
+      margin: 0 auto 2rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: #8b949e;
+      margin-bottom: 0.3rem;
+      margin-top: 1rem;
+    }
+
+    label:first-of-type { margin-top: 0; }
+
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 0.55rem 0.75rem;
+      color: #e6edf3;
+      font-size: 0.95rem;
+      transition: border-color 0.2s;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #f0c040;
+    }
+
+    .clan-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem 1.25rem;
+    }
+
+    .clan-field label { margin-top: 0; }
+
+    button {
+      margin-top: 1.5rem;
+      width: 100%;
+      padding: 0.75rem;
+      background: #f0c040;
+      color: #0d1117;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button:hover { background: #f5d060; }
+    button:disabled { background: #4a4a2a; color: #888; cursor: not-allowed; }
+
+    .error-box {
+      background: #2d1b1b;
+      border: 1px solid #f85149;
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      margin-top: 1rem;
+      color: #f85149;
+      font-size: 0.875rem;
+    }
+
+    /* Results */
+    #results { max-width: 960px; margin: 0 auto; }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .clan-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 1.25rem;
+    }
+
+    .clan-card h3 {
+      color: #f0c040;
+      margin-bottom: 0.25rem;
+      font-size: 1rem;
+    }
+
+    .clan-card .clan-tag {
+      color: #8b949e;
+      font-size: 0.78rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .th-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.2rem 0;
+      border-bottom: 1px solid #21262d;
+      font-size: 0.875rem;
+    }
+
+    .th-row:last-child { border-bottom: none; }
+
+    .th-label { color: #8b949e; }
+    .th-count {
+      font-weight: 700;
+      color: #e6edf3;
+      min-width: 2rem;
+      text-align: right;
+    }
+
+    .th-bar-wrap {
+      flex: 1;
+      margin: 0 0.75rem;
+      background: #21262d;
+      border-radius: 3px;
+      height: 6px;
+      overflow: hidden;
+    }
+
+    .th-bar {
+      height: 100%;
+      background: #f0c040;
+      border-radius: 3px;
+      transition: width 0.4s ease;
+    }
+
+    /* Summary comparison table */
+    .summary-card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 1.25rem;
+      overflow-x: auto;
+    }
+
+    .summary-card h2 {
+      color: #f0c040;
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    th {
+      color: #8b949e;
+      text-align: center;
+      padding: 0.4rem 0.6rem;
+      border-bottom: 1px solid #30363d;
+      white-space: nowrap;
+    }
+
+    th:first-child { text-align: left; }
+
+    td {
+      text-align: center;
+      padding: 0.4rem 0.6rem;
+      border-bottom: 1px solid #21262d;
+    }
+
+    td:first-child { text-align: left; color: #f0c040; font-weight: 600; }
+
+    tr:last-child td { border-bottom: none; }
+
+    .copy-btn {
+      margin-top: 1rem;
+      width: auto;
+      padding: 0.45rem 1.25rem;
+      font-size: 0.85rem;
+      background: #21262d;
+      color: #e6edf3;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+
+    .copy-btn:hover { background: #30363d; }
+
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid #4a4a2a;
+      border-top-color: #f0c040;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 0.5rem;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<h1>⚔️ Clash Scout</h1>
+<p class="subtitle">Town Hall distribution across up to 7 clans</p>
+
+<div class="card">
+  <label for="token">CoC API Auth Token</label>
+  <input type="password" id="token" placeholder="eyJ0eXAiOiJKV1Qi..." autocomplete="off" />
+
+  <div style="margin-top:1.25rem; margin-bottom:0.5rem; color:#8b949e; font-size:0.85rem;">
+    Clan Tags (include the # symbol, e.g. <code style="color:#f0c040">#ABC123</code>)
+  </div>
+
+  <div class="clan-grid" id="clanFields"></div>
+
+  <button id="scanBtn" onclick="scan()">Scan Clans</button>
+  <div id="formError"></div>
+</div>
+
+<div id="results"></div>
+
+<script>
+  // Build 7 clan input fields
+  const grid = document.getElementById('clanFields');
+  for (let i = 1; i <= 7; i++) {
+    grid.innerHTML += `
+      <div class="clan-field">
+        <label for="clan${i}">Clan ${i}</label>
+        <input type="text" id="clan${i}" placeholder="#CLANTAG${i}" />
+      </div>`;
+  }
+
+  async function scan() {
+    const btn = document.getElementById('scanBtn');
+    const errorDiv = document.getElementById('formError');
+    const resultsDiv = document.getElementById('results');
+
+    errorDiv.innerHTML = '';
+    resultsDiv.innerHTML = '';
+
+    const token = document.getElementById('token').value.trim();
+    if (!token) {
+      errorDiv.innerHTML = '<div class="error-box">Please enter your API auth token.</div>';
+      return;
+    }
+
+    const clans = [];
+    for (let i = 1; i <= 7; i++) {
+      const val = document.getElementById(`clan${i}`).value.trim();
+      if (val) clans.push(val);
+    }
+
+    if (clans.length === 0) {
+      errorDiv.innerHTML = '<div class="error-box">Enter at least one clan tag.</div>';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Scanning…';
+
+    try {
+      const resp = await fetch('/api/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, clans }),
+      });
+
+      const data = await resp.json();
+
+      if (!resp.ok) {
+        errorDiv.innerHTML = `<div class="error-box">${data.error || 'Server error'}</div>`;
+        return;
+      }
+
+      if (data.errors && data.errors.length > 0) {
+        errorDiv.innerHTML = `<div class="error-box">${data.errors.join('<br>')}</div>`;
+      }
+
+      if (data.results && data.results.length > 0) {
+        renderResults(data.results);
+      }
+
+    } catch (e) {
+      errorDiv.innerHTML = `<div class="error-box">Network error: ${e.message}</div>`;
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = 'Scan Clans';
+    }
+  }
+
+  function renderResults(results) {
+    const div = document.getElementById('results');
+
+    // Find all TH levels present across all clans
+    const allTH = new Set();
+    results.forEach(r => Object.keys(r.distribution).forEach(k => allTH.add(Number(k))));
+    const thLevels = [...allTH].sort((a, b) => b - a);
+
+    // Individual clan cards
+    let cardsHtml = '<div class="results-grid">';
+    results.forEach(r => {
+      const maxCount = Math.max(...Object.values(r.distribution), 1);
+      let rows = '';
+      thLevels.forEach(th => {
+        const count = r.distribution[th] || 0;
+        if (count === 0 && thLevels.length > 8) return; // skip zeros if lots of levels
+        const pct = Math.round((count / maxCount) * 100);
+        rows += `
+          <div class="th-row">
+            <span class="th-label">TH${th}</span>
+            <div class="th-bar-wrap"><div class="th-bar" style="width:${pct}%"></div></div>
+            <span class="th-count">${count}</span>
+          </div>`;
+      });
+      cardsHtml += `
+        <div class="clan-card">
+          <h3>${escHtml(r.name)}</h3>
+          <div class="clan-tag">${escHtml(r.tag)} · ${r.memberCount} members</div>
+          ${rows}
+        </div>`;
+    });
+    cardsHtml += '</div>';
+
+    // Summary comparison table
+    let headerRow = '<tr><th>Clan</th>' + thLevels.map(th => `<th>TH${th}</th>`).join('') + '<th>Total</th></tr>';
+    let bodyRows = results.map(r => {
+      const cells = thLevels.map(th => `<td>${r.distribution[th] || 0}</td>`).join('');
+      return `<tr><td>${escHtml(r.name)}</td>${cells}<td>${r.memberCount}</td></tr>`;
+    }).join('');
+
+    const tableId = 'summaryTable';
+    let summaryHtml = `
+      <div class="summary-card">
+        <h2>Comparison Table</h2>
+        <table id="${tableId}">
+          <thead>${headerRow}</thead>
+          <tbody>${bodyRows}</tbody>
+        </table>
+        <button class="copy-btn" onclick="copyCSV()">Copy as CSV</button>
+      </div>`;
+
+    div.innerHTML = cardsHtml + summaryHtml;
+
+    // Store for CSV export
+    window._csvData = { results, thLevels };
+  }
+
+  function copyCSV() {
+    const { results, thLevels } = window._csvData;
+    const header = ['Clan', 'Tag', ...thLevels.map(th => `TH${th}`), 'Total'].join(',');
+    const rows = results.map(r =>
+      [
+        `"${r.name}"`,
+        `"${r.tag}"`,
+        ...thLevels.map(th => r.distribution[th] || 0),
+        r.memberCount
+      ].join(',')
+    );
+    const csv = [header, ...rows].join('\n');
+    navigator.clipboard.writeText(csv).then(() => {
+      const btn = document.querySelector('.copy-btn');
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy as CSV', 2000);
+    });
+  }
+
+  function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // Allow Enter key to trigger scan
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') scan();
+  });
+</script>
+</body>
+</html>
