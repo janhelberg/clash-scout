@@ -205,6 +205,15 @@
 
     tr:last-child td { border-bottom: none; }
 
+    tr.my-clan-row td {
+      background: #1e2a1a;
+      border-bottom-color: #2a3a26;
+    }
+
+    tr.my-clan-row td:first-child {
+      color: #8fca6e;
+    }
+
     .copy-btn {
       margin-top: 1rem;
       width: auto;
@@ -392,9 +401,11 @@
 
     // Summary comparison table
     let headerRow = '<tr><th>Clan</th>' + thLevels.map(th => `<th>TH${th}</th>`).join('') + '<th>Total</th></tr>';
+    const MY_TAG = '#PYYC82JV';
     let bodyRows = results.map(r => {
       const cells = thLevels.map(th => `<td>${r.distribution[th] || 0}</td>`).join('');
-      return `<tr><td>${escHtml(r.name)}</td>${cells}<td>${r.memberCount}</td></tr>`;
+      const isMine = r.tag.toUpperCase() === MY_TAG;
+      return `<tr${isMine ? ' class="my-clan-row"' : ''}><td>${escHtml(r.name)}</td>${cells}<td>${r.memberCount}</td></tr>`;
     }).join('');
 
     const tableId = 'summaryTable';
@@ -447,6 +458,20 @@
     } catch {
       el.textContent = 'unavailable';
     }
+  })();
+
+  // Pre-populate clan inputs from clans.txt (slots 1–7; slot 8 is fixed)
+  (async () => {
+    try {
+      const resp = await fetch('/api/clans');
+      const data = await resp.json();
+      if (data.tags && data.tags.length > 0) {
+        data.tags.slice(0, 7).forEach((tag, idx) => {
+          const input = document.getElementById(`clan${idx + 1}`);
+          if (input) input.value = tag;
+        });
+      }
+    } catch { /* leave blank on error */ }
   })();
 
   // Allow Enter key to trigger scan

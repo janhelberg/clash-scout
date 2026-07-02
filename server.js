@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const fs = require('fs').promises;
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -74,6 +75,17 @@ app.post('/api/scan', async (req, res) => {
   }
 
   return res.json({ results, errors });
+});
+
+// Returns clan tags from clans.txt (one tag per line)
+app.get('/api/clans', async (_req, res) => {
+  try {
+    const text = await fs.readFile(path.join(__dirname, 'clans.txt'), 'utf8');
+    const tags = text.split('\n').map(l => l.trim()).filter(l => l.length > 0 && !l.startsWith('//'));
+    res.json({ tags });
+  } catch {
+    res.json({ tags: [] });
+  }
 });
 
 // Returns the server's own public outbound IP (for CoC API whitelisting)
