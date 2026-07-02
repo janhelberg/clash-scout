@@ -52,8 +52,8 @@ app.post('/api/scan', async (req, res) => {
     return res.status(400).json({ error: 'At least one clan tag is required.' });
   }
 
-  if (clans.length > 7) {
-    return res.status(400).json({ error: 'Maximum 7 clans allowed.' });
+  if (clans.length > 8) {
+    return res.status(400).json({ error: 'Maximum 8 clans allowed.' });
   }
 
   const results = [];

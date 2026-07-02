@@ -278,10 +278,10 @@
 <div id="results"></div>
 
 <script>
-  // Build 7 clan input fields
+  // Build 8 clan input fields
   const grid = document.getElementById('clanFields');
-  for (let i = 1; i <= 7; i++) {
-    const isFixed = i === 7;
+  for (let i = 1; i <= 8; i++) {
+    const isFixed = i === 8;
     grid.innerHTML += `
       <div class="clan-field">
         <label for="clan${i}">Clan ${i}${isFixed ? ' <span style="color:#f0c040;font-size:0.75rem">(fixed)</span>' : ''}</label>
@@ -305,7 +305,7 @@
     }
 
     const clans = [];
-    for (let i = 1; i <= 7; i++) {
+    for (let i = 1; i <= 8; i++) {
       const val = document.getElementById(`clan${i}`).value.trim();
       if (val) clans.push(val);
     }
