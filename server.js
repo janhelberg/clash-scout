@@ -10,7 +10,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Fetch town hall distribution for a single clan
 async function fetchClanTHDistribution(clanTag, token) {
-  const encoded = encodeURIComponent(clanTag.trim());
+  // Normalize: strip whitespace, uppercase, replace letter O with digit 0, ensure # prefix
+  let tag = clanTag.trim().toUpperCase().replace(/O/g, '0');
+  if (!tag.startsWith('#')) tag = '#' + tag;
+  const encoded = encodeURIComponent(tag);
   const url = `${COC_BASE}/clans/${encoded}`;
 
   const response = await fetch(url, {

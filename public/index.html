@@ -285,7 +285,7 @@
     grid.innerHTML += `
       <div class="clan-field">
         <label for="clan${i}">Clan ${i}${isFixed ? ' <span style="color:#f0c040;font-size:0.75rem">(fixed)</span>' : ''}</label>
-        <input type="text" id="clan${i}" placeholder="#CLANTAG${i}"
+        <input type="text" id="clan${i}" placeholder="CLANTAG${i} or #CLANTAG${i}"
           ${isFixed ? 'value="#PYYC82JV" readonly style="opacity:0.6;cursor:not-allowed"' : ''} />
       </div>`;
   }
@@ -355,6 +355,15 @@
     const allTH = new Set();
     results.forEach(r => Object.keys(r.distribution).forEach(k => allTH.add(Number(k))));
     const thLevels = [...allTH].sort((a, b) => b - a);
+
+    // Sort clans: highest TH count first; break ties by next highest TH, and so on
+    results = [...results].sort((a, b) => {
+      for (const th of thLevels) {
+        const diff = (b.distribution[th] || 0) - (a.distribution[th] || 0);
+        if (diff !== 0) return diff;
+      }
+      return 0;
+    });
 
     // Individual clan cards
     let cardsHtml = '<div class="results-grid">';
