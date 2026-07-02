@@ -231,6 +231,25 @@
     }
 
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    .ip-info {
+      margin-top: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      color: #8b949e;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .ip-info code {
+      color: #f0c040;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -241,6 +260,10 @@
 <div class="card">
   <label for="token">CoC API Auth Token</label>
   <input type="password" id="token" placeholder="eyJ0eXAiOiJKV1Qi..." autocomplete="off" />
+  <div class="ip-info">
+    <span>🌐 Whitelist this server IP in your CoC API key settings:</span>
+    <code id="serverIp">loading…</code>
+  </div>
 
   <div style="margin-top:1.25rem; margin-bottom:0.5rem; color:#8b949e; font-size:0.85rem;">
     Clan Tags (include the # symbol, e.g. <code style="color:#f0c040">#ABC123</code>)
@@ -258,10 +281,12 @@
   // Build 7 clan input fields
   const grid = document.getElementById('clanFields');
   for (let i = 1; i <= 7; i++) {
+    const isFixed = i === 7;
     grid.innerHTML += `
       <div class="clan-field">
-        <label for="clan${i}">Clan ${i}</label>
-        <input type="text" id="clan${i}" placeholder="#CLANTAG${i}" />
+        <label for="clan${i}">Clan ${i}${isFixed ? ' <span style="color:#f0c040;font-size:0.75rem">(fixed)</span>' : ''}</label>
+        <input type="text" id="clan${i}" placeholder="#CLANTAG${i}"
+          ${isFixed ? 'value="#PYYC82JV" readonly style="opacity:0.6;cursor:not-allowed"' : ''} />
       </div>`;
   }
 
@@ -402,6 +427,18 @@
   function escHtml(str) {
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
+
+  // Fetch and display the server's public outbound IP
+  (async () => {
+    const el = document.getElementById('serverIp');
+    try {
+      const resp = await fetch('/api/myip');
+      const data = await resp.json();
+      el.textContent = data.ip || 'unavailable';
+    } catch {
+      el.textContent = 'unavailable';
+    }
+  })();
 
   // Allow Enter key to trigger scan
   document.addEventListener('keydown', e => {
