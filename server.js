@@ -77,6 +77,32 @@ app.post('/api/scan', async (req, res) => {
   return res.json({ results, errors });
 });
 
+// Returns the other 7 clan tags from the current CWL league group
+app.get('/api/cwl-clans', async (req, res) => {
+  const token = req.query.token;
+  if (!token) return res.status(400).json({ error: 'Token is required.' });
+
+  const MY_TAG = '#PYYC82JV';
+  const encoded = encodeURIComponent(MY_TAG);
+  try {
+    const r = await fetch(`${COC_BASE}/clans/${encoded}/currentwar/leaguegroup`, {
+      headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+    });
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({}));
+      const reason = err.reason || err.message || r.statusText;
+      return res.status(r.status).json({ error: `CWL group: ${r.status} - ${reason}` });
+    }
+    const data = await r.json();
+    const tags = (data.clans || [])
+      .map(c => c.tag)
+      .filter(t => t.toUpperCase() !== MY_TAG);
+    res.json({ tags });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Returns clan tags from clans.txt (one tag per line)
 app.get('/api/clans', async (_req, res) => {
   try {

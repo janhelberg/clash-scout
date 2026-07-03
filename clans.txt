@@ -1,10 +1,3 @@
 // Paste clan tags here, one per line.
 // The # prefix is optional.
 // Up to 7 tags — slot 8 is always your own clan.
-J8JR902P
-2GRYG882J
-2JUPLYQG8
-8CVGQPGG
-22LVGV9JP
-PQLYO8P9
-JRJYCYP2

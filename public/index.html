@@ -276,6 +276,7 @@
 
   <div style="margin-top:1.25rem; margin-bottom:0.5rem; color:#8b949e; font-size:0.85rem;">
     Clan Tags (include the # symbol, e.g. <code style="color:#f0c040">#ABC123</code>)
+    <button id="cwlBtn" onclick="loadCWLClans()" style="float:right;margin-top:0;width:auto;padding:0.25rem 0.85rem;font-size:0.8rem;background:#21262d;color:#e6edf3;border:1px solid #30363d;border-radius:6px;font-weight:600;cursor:pointer;">Load from CWL</button>
   </div>
 
   <div class="clan-grid" id="clanFields"></div>
@@ -473,6 +474,37 @@
       }
     } catch { /* leave blank on error */ }
   })();
+
+  async function loadCWLClans() {
+    const btn = document.getElementById('cwlBtn');
+    const errorDiv = document.getElementById('formError');
+    const token = document.getElementById('token').value.trim();
+    if (!token) {
+      errorDiv.innerHTML = '<div class="error-box">Enter your API token first.</div>';
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = 'Loading…';
+    errorDiv.innerHTML = '';
+    try {
+      const resp = await fetch(`/api/cwl-clans?token=${encodeURIComponent(token)}`);
+      const data = await resp.json();
+      if (!resp.ok) {
+        errorDiv.innerHTML = `<div class="error-box">${data.error || 'Could not load CWL clans.'}</div>`;
+        return;
+      }
+      // Clear slots 1–7 then fill from CWL response
+      for (let i = 1; i <= 7; i++) {
+        const input = document.getElementById(`clan${i}`);
+        if (input) input.value = data.tags[i - 1] || '';
+      }
+    } catch (e) {
+      errorDiv.innerHTML = `<div class="error-box">Network error: ${e.message}</div>`;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Load from CWL';
+    }
+  }
 
   // Allow Enter key to trigger scan
   document.addEventListener('keydown', e => {
