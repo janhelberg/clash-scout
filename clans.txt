@@ -1,3 +1,0 @@
-// Paste clan tags here, one per line.
-// The # prefix is optional.
-// Up to 7 tags — slot 8 is always your own clan.

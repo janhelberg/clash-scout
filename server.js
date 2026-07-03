@@ -1,10 +1,10 @@
 const express = require('express');
 const path = require('path');
-const fs = require('fs').promises;
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const COC_BASE = 'https://api.clashofclans.com/v1';
+const COC_TOKEN = process.env.COC_TOKEN;
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -44,12 +44,12 @@ async function fetchClanTHDistribution(clanTag, token) {
   return { tag: clanTag, name, memberCount: members.length, distribution };
 }
 
-// POST /api/scan  body: { token, clans: ["#TAG1", ...] }
+// POST /api/scan  body: { clans: ["#TAG1", ...] }
 app.post('/api/scan', async (req, res) => {
-  const { token, clans } = req.body;
+  const { clans } = req.body;
 
-  if (!token || typeof token !== 'string' || token.trim() === '') {
-    return res.status(400).json({ error: 'Auth token is required.' });
+  if (!COC_TOKEN) {
+    return res.status(503).json({ error: 'COC_TOKEN environment variable is not configured.' });
   }
 
   if (!Array.isArray(clans) || clans.length === 0) {
@@ -67,7 +67,7 @@ app.post('/api/scan', async (req, res) => {
   for (const tag of clans) {
     if (!tag || tag.trim() === '') continue;
     try {
-      const result = await fetchClanTHDistribution(tag.trim(), token.trim());
+      const result = await fetchClanTHDistribution(tag.trim(), COC_TOKEN);
       results.push(result);
     } catch (err) {
       errors.push(err.message);
@@ -78,15 +78,16 @@ app.post('/api/scan', async (req, res) => {
 });
 
 // Returns the other 7 clan tags from the current CWL league group
-app.get('/api/cwl-clans', async (req, res) => {
-  const token = req.query.token;
-  if (!token) return res.status(400).json({ error: 'Token is required.' });
+app.get('/api/cwl-clans', async (_req, res) => {
+  if (!COC_TOKEN) {
+    return res.status(503).json({ error: 'COC_TOKEN environment variable is not configured.' });
+  }
 
   const MY_TAG = '#PYYC82JV';
   const encoded = encodeURIComponent(MY_TAG);
   try {
     const r = await fetch(`${COC_BASE}/clans/${encoded}/currentwar/leaguegroup`, {
-      headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
+      headers: { Authorization: `Bearer ${COC_TOKEN}`, Accept: 'application/json' },
     });
     if (!r.ok) {
       const err = await r.json().catch(() => ({}));
@@ -105,13 +106,7 @@ app.get('/api/cwl-clans', async (req, res) => {
 
 // Returns clan tags from clans.txt (one tag per line)
 app.get('/api/clans', async (_req, res) => {
-  try {
-    const text = await fs.readFile(path.join(__dirname, 'clans.txt'), 'utf8');
-    const tags = text.split('\n').map(l => l.trim()).filter(l => l.length > 0 && !l.startsWith('//'));
-    res.json({ tags });
-  } catch {
-    res.json({ tags: [] });
-  }
+  res.json({ tags: [] });
 });
 
 // Returns the server's own public outbound IP (for CoC API whitelisting)

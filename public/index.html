@@ -267,14 +267,7 @@
 <p class="subtitle">Town Hall distribution across up to 7 clans</p>
 
 <div class="card">
-  <label for="token">CoC API Auth Token</label>
-  <input type="password" id="token" placeholder="eyJ0eXAiOiJKV1Qi..." autocomplete="off" />
-  <div class="ip-info">
-    <span>🌐 Whitelist this server IP in your CoC API key settings:</span>
-    <code id="serverIp">loading…</code>
-  </div>
-
-  <div style="margin-top:1.25rem; margin-bottom:0.5rem; color:#8b949e; font-size:0.85rem;">
+  <div style="margin-top:0; margin-bottom:0.5rem; color:#8b949e; font-size:0.85rem;">
     Clan Tags (include the # symbol, e.g. <code style="color:#f0c040">#ABC123</code>)
     <button id="cwlBtn" onclick="loadCWLClans()" style="float:right;margin-top:0;width:auto;padding:0.25rem 0.85rem;font-size:0.8rem;background:#21262d;color:#e6edf3;border:1px solid #30363d;border-radius:6px;font-weight:600;cursor:pointer;">Load from CWL</button>
   </div>
@@ -308,12 +301,6 @@
     errorDiv.innerHTML = '';
     resultsDiv.innerHTML = '';
 
-    const token = document.getElementById('token').value.trim();
-    if (!token) {
-      errorDiv.innerHTML = '<div class="error-box">Please enter your API auth token.</div>';
-      return;
-    }
-
     const clans = [];
     for (let i = 1; i <= 8; i++) {
       const val = document.getElementById(`clan${i}`).value.trim();
@@ -332,7 +319,7 @@
       const resp = await fetch('/api/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, clans }),
+        body: JSON.stringify({ clans }),
       });
 
       const data = await resp.json();
@@ -478,16 +465,11 @@
   async function loadCWLClans() {
     const btn = document.getElementById('cwlBtn');
     const errorDiv = document.getElementById('formError');
-    const token = document.getElementById('token').value.trim();
-    if (!token) {
-      errorDiv.innerHTML = '<div class="error-box">Enter your API token first.</div>';
-      return;
-    }
     btn.disabled = true;
     btn.textContent = 'Loading…';
     errorDiv.innerHTML = '';
     try {
-      const resp = await fetch(`/api/cwl-clans?token=${encodeURIComponent(token)}`);
+      const resp = await fetch('/api/cwl-clans');
       const data = await resp.json();
       if (!resp.ok) {
         errorDiv.innerHTML = `<div class="error-box">${data.error || 'Could not load CWL clans.'}</div>`;
