@@ -1,56 +1,34 @@
 const express = require('express');
 const path = require('path');
+const { Client } = require('clashofclans.js');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const COC_BASE = 'https://api.clashofclans.com/v1';
-const COC_TOKEN = process.env.COC_TOKEN;
+const MY_TAG = '#PYYC82JV';
+
+const client = new Client();
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Fetch town hall distribution for a single clan
-async function fetchClanTHDistribution(clanTag, token) {
+async function fetchClanTHDistribution(clanTag) {
   // Normalize: strip whitespace, uppercase, replace letter O with digit 0, ensure # prefix
   let tag = clanTag.trim().toUpperCase().replace(/O/g, '0');
   if (!tag.startsWith('#')) tag = '#' + tag;
-  const encoded = encodeURIComponent(tag);
-  const url = `${COC_BASE}/clans/${encoded}`;
 
-  const response = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/json',
-    },
-  });
-
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    const reason = err.reason || err.message || response.statusText;
-    throw new Error(`Clan ${clanTag}: ${response.status} - ${reason}`);
-  }
-
-  const data = await response.json();
-  const name = data.name || clanTag;
-  const members = data.memberList || [];
-
-  // Count members per town hall level
+  const clan = await client.getClan(tag);
   const distribution = {};
-  for (const member of members) {
+  for (const member of clan.members) {
     const th = member.townHallLevel;
     distribution[th] = (distribution[th] || 0) + 1;
   }
-
-  return { tag: clanTag, name, memberCount: members.length, distribution };
+  return { tag: clan.tag, name: clan.name, memberCount: clan.members.length, distribution };
 }
 
 // POST /api/scan  body: { clans: ["#TAG1", ...] }
 app.post('/api/scan', async (req, res) => {
   const { clans } = req.body;
-
-  if (!COC_TOKEN) {
-    return res.status(503).json({ error: 'COC_TOKEN environment variable is not configured.' });
-  }
 
   if (!Array.isArray(clans) || clans.length === 0) {
     return res.status(400).json({ error: 'At least one clan tag is required.' });
@@ -67,7 +45,7 @@ app.post('/api/scan', async (req, res) => {
   for (const tag of clans) {
     if (!tag || tag.trim() === '') continue;
     try {
-      const result = await fetchClanTHDistribution(tag.trim(), COC_TOKEN);
+      const result = await fetchClanTHDistribution(tag.trim());
       results.push(result);
     } catch (err) {
       errors.push(err.message);
@@ -79,28 +57,12 @@ app.post('/api/scan', async (req, res) => {
 
 // Returns the other 7 clan tags from the current CWL league group
 app.get('/api/cwl-clans', async (_req, res) => {
-  if (!COC_TOKEN) {
-    return res.status(503).json({ error: 'COC_TOKEN environment variable is not configured.' });
-  }
-
-  const MY_TAG = '#PYYC82JV';
-  const encoded = encodeURIComponent(MY_TAG);
   try {
-    const r = await fetch(`${COC_BASE}/clans/${encoded}/currentwar/leaguegroup`, {
-      headers: { Authorization: `Bearer ${COC_TOKEN}`, Accept: 'application/json' },
-    });
-    if (!r.ok) {
-      const err = await r.json().catch(() => ({}));
-      const reason = err.reason || err.message || r.statusText;
-      return res.status(r.status).json({ error: `CWL group: ${r.status} - ${reason}` });
-    }
-    const data = await r.json();
-    const tags = (data.clans || [])
-      .map(c => c.tag)
-      .filter(t => t.toUpperCase() !== MY_TAG);
+    const group = await client.getClanWarLeagueGroup(MY_TAG);
+    const tags = group.clans.map(c => c.tag).filter(t => t.toUpperCase() !== MY_TAG);
     res.json({ tags });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    res.status(e.status || 500).json({ error: e.message });
   }
 });
 
@@ -120,6 +82,21 @@ app.get('/api/myip', async (_req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Clash Scout running on port ${PORT}`);
-});
+async function start() {
+  const email = process.env.COC_EMAIL;
+  const password = process.env.COC_PASSWORD;
+
+  if (!email || !password) {
+    console.error('COC_EMAIL and COC_PASSWORD environment variables are required.');
+    process.exit(1);
+  }
+
+  await client.login({ email, password });
+  console.log('Authenticated with CoC developer portal');
+
+  app.listen(PORT, () => {
+    console.log(`Clash Scout running on port ${PORT}`);
+  });
+}
+
+start();
